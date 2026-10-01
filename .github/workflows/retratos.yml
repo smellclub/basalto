@@ -15,30 +15,25 @@ jobs:
       - name: Buscar y bajar retratos
         run: |
           python3 - <<'PY'
-          import json, os, time, urllib.parse, urllib.request
+          import json, os, urllib.request
           UA = {"User-Agent": "Mozilla/5.0 (basalto-demo)"}
+          ids = ["1494790108377-be9c29b29330", "1438761681033-6461ffad8d80", "1534528741775-53994a69daeb",
+                 "1544005313-94ddf0286df2", "1580489944761-15a19d654956", "1573496359142-b8d87734a5a2",
+                 "1567532939604-b6b5b0db2604", "1531123897727-8f129e1688ce", "1487412720507-e7ab37603c6f",
+                 "1508214751196-bcfd4ca60f91", "1472099645785-5658abf4ff4e", "1519085360753-af0119f7cbe7",
+                 "1560250097-0b93528c311a", "1537511446984-935f663eb1f4", "1531427186611-ecfd6d936c79",
+                 "1599566150163-29194dcaad36", "1500648767791-00dcc994a43e", "1507003211169-0a1dd7228f2d"]
           os.makedirs("retratos", exist_ok=True)
-          out, seen = [], set()
-          for q in ["architect portrait", "woman architect portrait", "man portrait studio dark", "woman portrait professional dark background"]:
-              u = "https://unsplash.com/napi/search/photos?" + urllib.parse.urlencode({"query": q, "per_page": 20})
+          out = []
+          for pid in ids:
+              url = f"https://images.unsplash.com/photo-{pid}?w=900&h=1200&fit=crop&crop=faces&q=75&fm=jpg"
+              name = f"retratos/{len(out):02d}.jpg"
               try:
-                  d = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=UA)))
+                  open(name, "wb").write(urllib.request.urlopen(urllib.request.Request(url, headers=UA)).read())
               except Exception as e:
-                  print("search fail", q, e); continue
-              for r in d.get("results", []):
-                  if r["id"] in seen or r.get("premium") or r.get("plus"): continue
-                  seen.add(r["id"])
-                  img = r["urls"]["raw"] + "&w=900&h=1200&fit=crop&crop=faces&q=75&fm=jpg"
-                  name = f"retratos/{len(out):02d}.jpg"
-                  try:
-                      open(name, "wb").write(urllib.request.urlopen(urllib.request.Request(img, headers=UA)).read())
-                  except Exception as e:
-                      print("dl fail", r["id"], e); continue
-                  out.append({"file": name, "id": r["id"], "slug": r.get("slug"), "alt": r.get("alt_description"),
-                              "author": r["user"]["name"], "authorUrl": r["user"]["links"]["html"],
-                              "page": r["links"]["html"], "raw": r["urls"]["raw"], "query": q})
-                  time.sleep(0.5)
-          json.dump(out, open("retratos/retratos.json", "w"), ensure_ascii=False, indent=2)
+                  print("fail", pid, e); continue
+              out.append({"file": name, "id": pid, "url": f"https://images.unsplash.com/photo-{pid}"})
+          json.dump(out, open("retratos/retratos.json", "w"), indent=2)
           print(len(out))
           PY
       - name: Subir a la rama
