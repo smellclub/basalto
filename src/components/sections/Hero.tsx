@@ -1,14 +1,15 @@
 import Image from "next/image";
 import { business } from "@/config/business";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { PhotoCredit } from "@/components/ui/PhotoCredit";
 
 export function Hero() {
   const { heroImage } = business;
   return (
     <section id="inicio" aria-labelledby="hero-title" className="relative isolate overflow-hidden">
       {/*
-        La foto es vertical: en celular se ve entera, en escritorio la recortamos
-        con object-position para dejar la casa y el cielo en cuadro.
+        Foto real de la sierra, de día. La oscurecemos y le bajamos el color con
+        filtros CSS para que combine con la paleta nocturna de la marca.
         priority porque es lo primero que se ve (mejora el LCP).
       */}
       <Image
@@ -17,7 +18,12 @@ export function Hero() {
         fill
         priority
         sizes="100vw"
-        className="hero-photo -z-20 object-cover object-[50%_42%] md:object-[50%_47%]"
+        className="hero-photo -z-20 object-cover object-[55%_50%] brightness-[0.5] saturate-[0.45] contrast-[1.1]"
+      />
+      {/* Tinte violeta arriba, como el cielo al anochecer. */}
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,rgb(80_44_78/0.55),transparent_55%)] mix-blend-multiply"
       />
       {/* Degradés: aseguran contraste AA del texto y funden la foto con el fondo. */}
       <div
@@ -42,9 +48,12 @@ export function Hero() {
               Ver obras
             </ButtonLink>
           </div>
-          <p className="hidden items-center gap-4 text-xs uppercase md:flex tracking-[0.25em] text-paper/60">
-            <span aria-hidden className="h-px w-10 bg-paper/40" />
-            {heroImage.caption}
+          <p className="flex flex-col gap-1 text-xs uppercase tracking-[0.25em] text-paper/60 md:items-end">
+            <span className="hidden items-center gap-4 md:flex">
+              <span aria-hidden className="h-px w-10 bg-paper/40" />
+              {heroImage.caption}
+            </span>
+            <PhotoCredit credit={heroImage.credit} edited />
           </p>
         </div>
       </div>

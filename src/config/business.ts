@@ -30,6 +30,17 @@ export type Architect = {
   serviceIds: string[];
 };
 
+/** Crédito de una foto con licencia libre (Creative Commons). Es obligatorio mostrarlo. */
+export type PhotoCredit = {
+  author: string;
+  license: string;
+  licenseUrl: string;
+  /** Página original de la foto. */
+  source: string;
+};
+
+export type Photo = { src: string; alt: string; caption?: string; credit: PhotoCredit };
+
 export type Project = {
   id: string;
   name: string;
@@ -50,11 +61,65 @@ export const business = {
   /** URL pública donde va a vivir la web (para SEO y Open Graph). */
   siteUrl: "https://basalto-smellclub.vercel.app",
 
-  /** Foto principal. Las fotos viven en public/proyectos/. */
+  /**
+   * Foto principal: la Sierra de las Ánimas real (Wikimedia Commons, licencia CC BY-SA 2.0).
+   * La oscurecemos con CSS para que combine con la paleta; el crédito se muestra en el hero.
+   */
   heroImage: {
-    src: "/proyectos/mirador-exterior.webp",
-    alt: "Casa baja de piedra oscura sobre el borde de un acantilado, al atardecer, con cipreses y sierras al fondo",
-    caption: "Casa Mirador · Sierra de las Ánimas",
+    src: "/sierra/sierra-aerea.jpg",
+    alt: "Vista aérea de la Sierra de las Ánimas: cerros cubiertos de monte nativo bajo un cielo despejado",
+    caption: "Sierra de las Ánimas, Maldonado",
+    credit: {
+      author: "Marcelo Campi",
+      license: "CC BY-SA 2.0",
+      licenseUrl: "https://creativecommons.org/licenses/by-sa/2.0/",
+      source: "https://commons.wikimedia.org/wiki/File:Sierra_de_las_Animas_(45324359482).jpg",
+    },
+  } satisfies Photo,
+
+  /**
+   * Sección "El lugar": fotos reales de la sierra donde trabaja el estudio.
+   * Fotos de Wikimedia Commons con licencia libre: el crédito se muestra debajo de cada una.
+   */
+  place: {
+    title: "La sierra, antes que la casa.",
+    intro:
+      "Casi todas nuestras obras están en la Sierra de las Ánimas y sus alrededores, entre Piriápolis y Pan de Azúcar. Granito, monte nativo, cañadas y el mar a lo lejos: ese es el punto de partida de cada proyecto.",
+    photos: [
+      {
+        src: "/sierra/cumbre-mar.jpg",
+        alt: "Piedras apiladas sobre una roca en la cumbre de la sierra, con el campo y la costa de Piriápolis al fondo",
+        caption: "Cumbre, con vista a la costa",
+        credit: {
+          author: "Fabian Bandera",
+          license: "CC BY 3.0",
+          licenseUrl: "https://creativecommons.org/licenses/by/3.0/",
+          source: "https://commons.wikimedia.org/wiki/File:Sierra_de_las_%C3%81nimas_-_panoramio_(1).jpg",
+        },
+      },
+      {
+        src: "/sierra/ladera.jpg",
+        alt: "Ladera de la sierra con afloramientos de piedra gris entre el monte nativo",
+        caption: "Ladera de granito y monte nativo",
+        credit: {
+          author: "Fabian Bandera",
+          license: "CC BY 3.0",
+          licenseUrl: "https://creativecommons.org/licenses/by/3.0/",
+          source: "https://commons.wikimedia.org/wiki/File:Sierra_de_las_%C3%81nimas_-_panoramio_(2).jpg",
+        },
+      },
+      {
+        src: "/sierra/cascada.jpg",
+        alt: "Cascada que cae entre rocas cubiertas de musgo en una cañada de la sierra",
+        caption: "Cañada con cascada",
+        credit: {
+          author: "Fabian Bandera",
+          license: "CC BY 3.0",
+          licenseUrl: "https://creativecommons.org/licenses/by/3.0/",
+          source: "https://commons.wikimedia.org/wiki/File:Sierra_de_las_%C3%81nimas_-_panoramio_(4).jpg",
+        },
+      },
+    ] satisfies Photo[],
   },
 
   /** Colores de marca. El resto de la paleta (piedra oscura y crema) es fija. */
@@ -168,7 +233,10 @@ export const business = {
     },
   ] satisfies Architect[],
 
-  /** Obras. Las fotos son verticales (9:16). */
+  /**
+   * Obras. Las fotos son verticales (9:16). Son renders de ejemplo para la demo:
+   * con un cliente real, van fotos de sus obras terminadas.
+   */
   projects: [
     {
       id: "mirador",
