@@ -27,6 +27,8 @@ export type Architect = {
   name: string;
   role: string;
   bio: string;
+  /** Retrato en /public/equipo. En la demo son fotos de stock de Unsplash (licencia libre, sin crédito obligatorio). */
+  image: string;
   /** Tipos de reunión que toma esta persona (ids de `services`). */
   serviceIds: string[];
 };
@@ -215,6 +217,7 @@ export const business = {
   architects: [
     {
       id: "lucia",
+      image: "/equipo/lucia.jpg",
       name: "Lucía Ferrés",
       role: "Arquitecta · Socia fundadora",
       bio: "Proyecta cada casa desde el terreno. Quince años entre sierras, costa y campo.",
@@ -222,6 +225,7 @@ export const business = {
     },
     {
       id: "tomas",
+      image: "/equipo/tomas.jpg",
       name: "Tomás Olivera",
       role: "Arquitecto · Dirección de obra",
       bio: "Piedra, hormigón y detalles constructivos. Está en la obra hasta la última junta.",
@@ -229,6 +233,7 @@ export const business = {
     },
     {
       id: "ines",
+      image: "/equipo/ines.jpg",
       name: "Inés Barreiro",
       role: "Interiorismo y luz",
       bio: "Diseña los interiores y la iluminación para que la casa cambie con el día.",
