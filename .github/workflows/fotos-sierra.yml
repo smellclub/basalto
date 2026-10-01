@@ -1,0 +1,58 @@
+# Temporal: baja fotos libres de Sierra de las Ánimas (Wikimedia Commons) con sus licencias
+# y las sube a esta rama para elegir cuáles usar. Se borra una vez elegidas.
+name: Bajar fotos de Sierra de las Ánimas
+on:
+  push:
+    branches: [fotos-sierra]
+    paths: [.github/workflows/fotos-sierra.yml]
+permissions:
+  contents: write
+jobs:
+  fotos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bajar fotos y créditos
+        run: |
+          python3 - <<'PY'
+          import json, os, re, time, urllib.parse, urllib.request
+          UA = {"User-Agent": "basalto-demo/1.0 (https://github.com/smellclub/basalto)"}
+          def api(p):
+              u = "https://commons.wikimedia.org/w/api.php?" + urllib.parse.urlencode({**p, "format": "json"})
+              return json.load(urllib.request.urlopen(urllib.request.Request(u, headers=UA)))
+          cats = ["Category:Sierra de las Ánimas", "Category:Cañadon de la Palma", "Category:Cerro de las Ánimas"]
+          os.makedirs("fotos-candidatas", exist_ok=True)
+          credits, seen = [], set()
+          for c in cats:
+              d = api({"action": "query", "generator": "categorymembers", "gcmtitle": c, "gcmtype": "file",
+                       "gcmlimit": 100, "prop": "imageinfo", "iiprop": "url|size|extmetadata", "iiurlwidth": 1920})
+              for p in d.get("query", {}).get("pages", {}).values():
+                  if p["title"] in seen: continue
+                  seen.add(p["title"])
+                  ii = p["imageinfo"][0]; m = ii.get("extmetadata", {})
+                  g = lambda k: re.sub(r"\s+", " ", re.sub("<[^>]+>", "", m.get(k, {}).get("value", ""))).strip()
+                  url = ii["url"] if ii["width"] <= 1920 else ii["thumburl"].split("?")[0].replace("thumb.wikimedia.org", "upload.wikimedia.org")
+                  n = len(credits)
+                  name = f"fotos-candidatas/{n:02d}.jpg"
+                  for attempt in range(4):
+                      try:
+                          data = urllib.request.urlopen(urllib.request.Request(url, headers=UA)).read(); break
+                      except Exception as e:
+                          print("retry", name, e); time.sleep(10 * (attempt + 1))
+                  else:
+                      continue
+                  open(name, "wb").write(data)
+                  credits.append({"file": name, "title": p["title"], "author": g("Artist"), "license": g("LicenseShortName"),
+                                  "licenseUrl": g("LicenseUrl"), "page": ii["descriptionurl"], "description": g("ImageDescription")[:200],
+                                  "width": ii["width"], "height": ii["height"]})
+                  print(name, p["title"], len(data))
+                  time.sleep(3)
+          json.dump(credits, open("fotos-candidatas/creditos.json", "w"), ensure_ascii=False, indent=2)
+          PY
+      - name: Subir a la rama
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898+github-actions[bot]@users.noreply.github.com"
+          git add fotos-candidatas
+          git commit -m "Fotos candidatas de Sierra de las Ánimas (Wikimedia Commons)"
+          git push
