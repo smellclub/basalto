@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+/*
+ * Paleta fija: piedra oscura con un tinte violeta (el cielo de las fotos) y crema.
+ * El acento (--brand-accent) se define en layout.tsx a partir de business.ts,
+ * así el rebrandeo no toca este archivo.
+ */
+@theme inline {
+  --color-ink: #0d0b0f;
+  --color-ink-soft: #151218;
+  --color-line: #2b2630;
+  --color-paper: #eee8e2;
+  --color-muted: #a59ca8;
+  --color-dusk: #6e4a6b;
+  --color-accent: var(--brand-accent);
+  --color-accent-hover: var(--brand-accent-hover);
+  --font-display: var(--font-instrument-serif);
+  --font-sans: var(--font-inter-tight);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+::selection {
+  background: var(--brand-accent);
+  color: var(--color-ink);
+}
+
+/* Foco visible para quien navega con teclado. */
+:focus-visible {
+  outline: 2px solid var(--brand-accent);
+  outline-offset: 3px;
+}
+
+/*
+ * Grano sutil encima de todo, como una foto analógica. Es un SVG inline
+ * (data:), así que no hace falta cambiar la CSP. pointer-events: none
+ * para que no bloquee clics.
+ */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/*
+ * Animación de aparición al hacer scroll. Solo se activa si hay JS
+ * (clase js-reveal en <html>) y si el usuario no pidió reducir movimiento.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .js-reveal [data-reveal] {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 900ms ease,
+      transform 1100ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .js-reveal [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* La foto del hero entra con un zoom lento, como una toma de cine. */
+  .hero-photo {
+    animation: hero-settle 2.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes hero-settle {
+    from {
+      transform: scale(1.08);
+      opacity: 0.4;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Por defecto un <fieldset> no se achica más que su contenido: rompe el scroll horizontal de las fechas en celular. */
+fieldset {
+  min-width: 0;
+}
