@@ -62,7 +62,7 @@ frecuentes y datos legales.
 |---|---|
 | La clave secreta no llega al navegador | Solo se usa en `src/lib/supabase-admin.ts`, que importa `server-only` (si alguien lo importa en el cliente, el build falla). |
 | Nadie puede leer ni escribir la base desde afuera | RLS activado y sin políticas; solo el servidor escribe. |
-| Reuniones superpuestas | Restricción `bookings_no_overlap` en la base: rechaza reuniones que se pisan para el mismo arquitecto, aunque lleguen dos pedidos al mismo tiempo. |
+| Reuniones superpuestas | Restricción `consultations_no_overlap` en la base: rechaza reuniones que se pisan para el mismo arquitecto, aunque lleguen dos pedidos al mismo tiempo. |
 | Datos inválidos | Validación con Zod en el servidor (`src/lib/validation.ts`). |
 | Spam | Campo trampa (honeypot) + máximo 5 reuniones por hora por IP + rechazo de fechas pasadas o fuera de horario. |
 | Privacidad | Las IP se guardan hasheadas; sin cookies de seguimiento. |

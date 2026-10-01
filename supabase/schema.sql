@@ -1,11 +1,13 @@
--- Basalto: tabla de consultas agendadas.
+-- Basalto: tabla de consultas agendadas (consultations).
+-- Puede vivir en el mismo proyecto de Supabase que otra demo: usa nombres propios
+-- de tabla, restricciones e índices, así no choca con la tabla bookings de Black Line.
 -- Correr UNA vez en Supabase → SQL Editor → New query → pegar todo → Run.
 
 -- Permite combinar "=" (mismo arquitecto) con "&&" (horarios que se pisan)
 -- en una misma restricción. Viene incluida en Supabase.
 create extension if not exists btree_gist with schema extensions;
 
-create table if not exists public.bookings (
+create table if not exists public.consultations (
   id                  uuid primary key default gen_random_uuid(),
   service_id          text not null check (char_length(service_id) between 1 and 50),
   architect_id           text not null check (char_length(architect_id) between 1 and 50),
@@ -22,26 +24,26 @@ create table if not exists public.bookings (
   privacy_accepted_at timestamptz not null,
   created_at          timestamptz not null default now(),
 
-  constraint bookings_valid_range check (ends_at > starts_at),
+  constraint consultations_valid_range check (ends_at > starts_at),
 
   -- Impide reuniones superpuestas para el mismo arquitecto, aunque dos pedidos
   -- lleguen exactamente al mismo tiempo. '[)' = el fin no cuenta, así una
   -- reunión que termina 10:30 no choca con una que empieza 10:30.
-  constraint bookings_no_overlap exclude using gist (
+  constraint consultations_no_overlap exclude using gist (
     architect_id with =,
     tstzrange(starts_at, ends_at, '[)') with &&
   )
 );
 
 -- Acelera el conteo del rate limit (consultas agendadas por IP en la última hora).
-create index if not exists bookings_ip_hash_created_at_idx
-  on public.bookings (ip_hash, created_at);
+create index if not exists consultations_ip_hash_created_at_idx
+  on public.consultations (ip_hash, created_at);
 
 -- Row Level Security activado y SIN políticas: nadie puede leer ni escribir
 -- con la clave pública (anon). Solo el servidor, con la service role key.
-alter table public.bookings enable row level security;
-revoke all on public.bookings from anon, authenticated;
+alter table public.consultations enable row level security;
+revoke all on public.consultations from anon, authenticated;
 
 -- Retención (ver /privacidad): borrar reservas viejas.
 -- Podés correrlo a mano cada tanto, o programarlo con pg_cron:
---   delete from public.bookings where ends_at < now() - interval '365 days';
+--   delete from public.consultations where ends_at < now() - interval '365 days';

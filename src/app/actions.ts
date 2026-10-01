@@ -37,14 +37,14 @@ async function busyIntervals(architectId: string, date: string): Promise<BusyInt
 
   // Solo pedimos las columnas de horario: el navegador nunca ve datos de otros clientes.
   const { data, error } = await supabase
-    .from("bookings")
+    .from("consultations")
     .select("starts_at, ends_at")
     .eq("architect_id", architectId)
     .lt("starts_at", dayEnd.toISOString())
     .gt("ends_at", dayStart.toISOString());
 
   if (error) {
-    console.error("[bookings] error leyendo horarios", error.message);
+    console.error("[consultations] error leyendo horarios", error.message);
     return null;
   }
   return data.map((row) => ({ start: new Date(row.starts_at), end: new Date(row.ends_at) }));
@@ -67,7 +67,7 @@ export async function getAvailableSlots(input: {
   const busy = await busyIntervals(architectId, date);
   if (!busy) {
     if (!getSupabaseAdmin()) {
-      console.warn("[bookings] Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env.local");
+      console.warn("[consultations] Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env.local");
     }
     return { ok: false };
   }
@@ -132,7 +132,7 @@ export async function createBooking(
 
   const supabase = getSupabaseAdmin();
   if (!supabase) {
-    console.warn("[bookings] Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env.local");
+    console.warn("[consultations] Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env.local");
     return { status: "error", message: GENERIC_ERROR };
   }
 
@@ -142,12 +142,12 @@ export async function createBooking(
   const ipHash = await hashedClientIp();
   const since = new Date(Date.now() - RATE_LIMIT_WINDOW_MS).toISOString();
   const { count, error: countError } = await supabase
-    .from("bookings")
+    .from("consultations")
     .select("id", { count: "exact", head: true })
     .eq("ip_hash", ipHash)
     .gte("created_at", since);
   if (countError) {
-    console.error("[bookings] error en rate limit", countError.message);
+    console.error("[consultations] error en rate limit", countError.message);
     return { status: "error", message: GENERIC_ERROR };
   }
   if ((count ?? 0) >= RATE_LIMIT_MAX) {
@@ -158,10 +158,10 @@ export async function createBooking(
   }
 
   // 5. Guardar. Si otra persona agendó ese horario al mismo tiempo,
-  //    la restricción de la base (bookings_no_overlap) lo rechaza.
+  //    la restricción de la base (consultations_no_overlap) lo rechaza.
   const startsAt = toInstant(data.date, data.time);
   const endsAt = new Date(startsAt.getTime() + service.durationMinutes * 60_000);
-  const { error } = await supabase.from("bookings").insert({
+  const { error } = await supabase.from("consultations").insert({
     service_id: service.id,
     architect_id: architect.id,
     starts_at: startsAt.toISOString(),
@@ -177,7 +177,7 @@ export async function createBooking(
   if (error) {
     // 23P01 = violación de la restricción de exclusión (reunión superpuesta).
     if (error.code === "23P01") return { status: "error", message: SLOT_TAKEN };
-    console.error("[bookings] error guardando", error.code, error.message);
+    console.error("[consultations] error guardando", error.code, error.message);
     return { status: "error", message: GENERIC_ERROR };
   }
 
