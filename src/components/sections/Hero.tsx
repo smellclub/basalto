@@ -44,8 +44,8 @@ export function Hero() {
         <div className="mt-12 flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
           <div className="flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="#consulta">Agendar primera consulta</ButtonLink>
-            <ButtonLink href="#obras" variant="outline">
-              Ver obras
+            <ButtonLink href="#lugar" variant="outline">
+              Conocer la zona
             </ButtonLink>
           </div>
           <p className="flex flex-col gap-1 text-xs uppercase tracking-[0.25em] text-paper/60 md:items-end">

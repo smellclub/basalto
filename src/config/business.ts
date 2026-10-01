@@ -1,10 +1,11 @@
 /**
  * Todo el contenido del estudio vive acá.
  * Para rebrandear la web a otro estudio alcanza con editar este archivo
- * y cambiar las fotos de public/proyectos/.
+ * y cambiar las fotos de public/sierra/ y public/zona/.
  *
  * IMPORTANTE: "Basalto" es un estudio FICTICIO para usar como demo.
- * Nombres, obras, dirección y teléfono son inventados.
+ * Nombres, equipo, dirección y teléfono son inventados. Las fotos de "El lugar" y
+ * "Referencias" son reales (Wikimedia Commons) y llevan el crédito de su autor.
  */
 
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = domingo
@@ -41,15 +42,17 @@ export type PhotoCredit = {
 
 export type Photo = { src: string; alt: string; caption?: string; credit: PhotoCredit };
 
-export type Project = {
+/**
+ * Una construcción real de la zona que el estudio toma como referencia.
+ * NO son obras del estudio: se muestran con su nombre real y el crédito de la foto.
+ */
+export type Reference = {
   id: string;
   name: string;
   place: string;
-  year: number;
-  /** Superficie construida, en m². */
-  area: number;
-  summary: string;
-  image: { src: string; alt: string };
+  /** Qué aprende el estudio de esta construcción. */
+  lesson: string;
+  image: Photo;
 };
 
 export const business = {
@@ -84,7 +87,7 @@ export const business = {
   place: {
     title: "La sierra, antes que la casa.",
     intro:
-      "Casi todas nuestras obras están en la Sierra de las Ánimas y sus alrededores, entre Piriápolis y Pan de Azúcar. Granito, monte nativo, cañadas y el mar a lo lejos: ese es el punto de partida de cada proyecto.",
+      "Trabajamos sobre todo en la Sierra de las Ánimas y sus alrededores, entre Piriápolis y Pan de Azúcar. Granito, monte nativo, cañadas y el mar a lo lejos: ese es el punto de partida de cada proyecto.",
     photos: [
       {
         src: "/sierra/cumbre-mar.jpg",
@@ -234,63 +237,80 @@ export const business = {
   ] satisfies Architect[],
 
   /**
-   * Obras. Las fotos son verticales (9:16). Son renders de ejemplo para la demo:
-   * con un cliente real, van fotos de sus obras terminadas.
+   * Referencias: construcciones reales cerca de la Sierra de las Ánimas (fotos de Wikimedia
+   * Commons con licencia libre). El estudio es ficticio y no tiene obras propias, así que
+   * NO las presentamos como obras suyas. Con un cliente real, acá van sus obras terminadas.
    */
-  projects: [
+  references: [
     {
-      id: "mirador",
-      name: "Casa Mirador",
-      place: "Sierra de las Ánimas, Maldonado",
-      year: 2025,
-      area: 320,
-      summary:
-        "Una sola planta apoyada en el borde del acantilado. El living es una ventana de dieciocho metros hacia el valle.",
+      id: "parador-san-antonio",
+      name: "Parador del Cerro San Antonio",
+      place: "Piriápolis, Maldonado",
+      lesson:
+        "Un volumen de vidrio apoyado en la ladera: la vista manda y la construcción se corre a un costado.",
       image: {
-        src: "/proyectos/mirador-living.webp",
-        alt: "Living oscuro con sillones bajos y un ventanal de piso a techo que enmarca un cañón con cipreses al atardecer",
+        src: "/zona/parador-san-antonio.jpg",
+        alt: "Edificio bajo de vidrio y techo plano sobre la ladera del Cerro San Antonio, rodeado de vegetación",
+        credit: {
+          author: "Ricardo Freitas",
+          license: "CC BY-SA 3.0",
+          licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0/",
+          source: "https://commons.wikimedia.org/wiki/File:Parador_Cerro_San_Antonio,_Piri%C3%A1polis_-_panoramio_(33).jpg",
+        },
       },
     },
     {
-      id: "ladera",
-      name: "Casa Ladera",
-      place: "Villa Serrana, Lavalleja",
-      year: 2024,
-      area: 260,
-      summary:
-        "Enterrada en la pendiente, con techo verde. Desde arriba casi no se ve: la sierra sigue siendo la protagonista.",
+      id: "castillo-piria",
+      name: "Castillo de Piria",
+      place: "Piriápolis, Maldonado",
+      lesson:
+        "Piedra y ladrillo de la zona, muros gruesos y almenas: una casa pensada para durar más de un siglo.",
       image: {
-        src: "/proyectos/ladera.webp",
-        alt: "Casa alargada con techo de pasto encastrada en la ladera de una sierra, con cipreses y un valle al fondo",
+        src: "/zona/castillo-piria.jpg",
+        alt: "Fachada del Castillo de Piria, de ladrillo rojo con almenas y ventanas en arco",
+        credit: {
+          author: "Ezarate",
+          license: "CC BY-SA 4.0",
+          licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
+          source: "https://commons.wikimedia.org/wiki/File:CastillodePiria-ene2023_(full_size).jpg",
+        },
       },
     },
     {
-      id: "patio",
-      name: "Casa Patio",
-      place: "Pueblo Garzón, Maldonado",
-      year: 2024,
-      area: 410,
-      summary:
-        "Muros de piedra que se cierran hacia afuera y se abren a un patio con espejo de agua. Silencio y sombra en verano.",
+      id: "hotel-escorial",
+      name: "Hotel Escorial",
+      place: "Piriápolis, Maldonado",
+      lesson:
+        "Curvas, balcones corridos y color: el art déco frente al mar demuestra que la luz también se diseña.",
       image: {
-        src: "/proyectos/patio.webp",
-        alt: "Patio entre muros de piedra con un espejo de agua largo, cipreses al fondo y un cielo violeta con tormenta",
+        src: "/zona/hotel-escorial.jpg",
+        alt: "Edificio art déco celeste con balcones curvos y una torre vertical con el nombre del hotel",
+        credit: {
+          author: "Andrés Franchi Ugart…",
+          license: "CC BY-SA 3.0",
+          licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0/",
+          source: "https://commons.wikimedia.org/wiki/File:Hotel_Escorial_de_Piri%C3%A1polis_-_panoramio.jpg",
+        },
       },
     },
     {
-      id: "umbral",
-      name: "Casa Umbral",
-      place: "Sierra de Minas, Lavalleja",
-      year: 2023,
-      area: 190,
-      summary:
-        "La cocina es el centro: una isla de piedra, una ventana horizontal a la altura de la mesada y la piscina a un paso.",
+      id: "castillo-pittamiglio",
+      name: "Castillo Pittamiglio",
+      place: "Las Flores, Maldonado",
+      lesson:
+        "Piedra de la costa, levantada a mano y con humor: cada muro cuenta quién lo hizo.",
       image: {
-        src: "/proyectos/umbral-cocina.webp",
-        alt: "Cocina con isla de piedra vista a través de un ventanal, con una ventana horizontal hacia las sierras y una piscina en primer plano",
+        src: "/zona/castillo-pittamiglio.jpg",
+        alt: "Muros de piedra con una torre de ladrillo y un arco de entrada, bajo un cielo azul",
+        credit: {
+          author: "Marcelo Campi",
+          license: "CC BY-SA 3.0",
+          licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0/",
+          source: "https://commons.wikimedia.org/wiki/File:Pittamiglio_Castle_(134479505).jpeg",
+        },
       },
     },
-  ] satisfies Project[],
+  ] satisfies Reference[],
 
   /** Qué hace el estudio (sección "Qué hacemos"). */
   disciplines: [

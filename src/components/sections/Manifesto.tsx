@@ -15,8 +15,8 @@ export function Manifesto() {
             </span>
           </p>
           <dl className="mt-16 grid grid-cols-2 gap-8 border-t border-line pt-10 md:grid-cols-4" data-reveal>
-            <Stat label="Obras terminadas" value="24" />
-            <Stat label="Departamentos" value="5" />
+            <Stat label="Dónde" value="Sierra de las Ánimas" small />
+            <Stat label="Escala" value="Casas, de a una" small />
             <Stat label="Materiales" value="Piedra, hormigón, vidrio" small />
             <Stat label="Desde" value="2011" />
           </dl>

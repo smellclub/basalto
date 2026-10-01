@@ -1,7 +1,7 @@
 import { business } from "@/config/business";
 
 const links = [
-  { href: "#obras", label: "Obras" },
+  { href: "#lugar", label: "El lugar" },
   { href: "#estudio", label: "Estudio" },
   { href: "#proceso", label: "Proceso" },
   { href: "#contacto", label: "Contacto" },

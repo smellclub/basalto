@@ -47,8 +47,9 @@ Todo el contenido está en **`src/config/business.ts`**: nombre, eslogan, color 
 teléfono, dirección, horarios, tipos de reunión y honorarios, equipo, obras, proceso, preguntas
 frecuentes y datos legales.
 
-- **Fotos:** reemplazá las de `public/proyectos/` por fotos reales de las obras del cliente
-  (JPG o WebP, idealmente verticales) y actualizá `heroImage` y `projects` en `business.ts`.
+- **Fotos:** la demo usa fotos reales de Wikimedia Commons (`public/sierra/` y `public/zona/`)
+  con licencia Creative Commons: **el crédito del autor tiene que quedar visible**. Con un cliente
+  real, cambiá la sección `references` por sus obras terminadas, con sus propias fotos.
   Escribí un `alt` que describa cada foto: ayuda a la accesibilidad y al SEO.
 - **Equipo:** sin fotos se muestran las iniciales. Con un cliente real, mejor retratos.
 - **Legales:** `/privacidad` y `/terminos` son textos modelo. Tiene que revisarlos un profesional

@@ -55,8 +55,8 @@ export function Footer() {
       <div className="border-t border-line">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-6 text-xs text-muted md:flex-row md:justify-between md:px-10">
           <p>
-            © {year} {business.name}. Estudio ficticio: sitio de demostración. Las casas son renders de
-            ejemplo; las fotos de la sierra son de Wikimedia Commons (créditos en cada foto).
+            © {year} {business.name}. Estudio ficticio: sitio de demostración. Las fotos son de Wikimedia
+            Commons (créditos en cada una); las construcciones de «Referencias» no son obras del estudio.
           </p>
           <nav aria-label="Legal" className="flex gap-6">
             <Link href="/privacidad" className="hover:text-paper">
