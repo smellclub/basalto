@@ -1,0 +1,50 @@
+# Temporal: busca retratos en Unsplash (licencia Unsplash: uso libre, sin atribución obligatoria)
+# y los sube a esta rama para elegir cuáles usar en el equipo. Se descarta una vez elegidos.
+name: Bajar retratos para el equipo
+on:
+  push:
+    branches: [retratos]
+    paths: [.github/workflows/retratos.yml]
+permissions:
+  contents: write
+jobs:
+  fotos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Buscar y bajar retratos
+        run: |
+          python3 - <<'PY'
+          import json, os, time, urllib.parse, urllib.request
+          UA = {"User-Agent": "Mozilla/5.0 (basalto-demo)"}
+          os.makedirs("retratos", exist_ok=True)
+          out, seen = [], set()
+          for q in ["architect portrait", "woman architect portrait", "man portrait studio dark", "woman portrait professional dark background"]:
+              u = "https://unsplash.com/napi/search/photos?" + urllib.parse.urlencode({"query": q, "per_page": 20})
+              try:
+                  d = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=UA)))
+              except Exception as e:
+                  print("search fail", q, e); continue
+              for r in d.get("results", []):
+                  if r["id"] in seen or r.get("premium") or r.get("plus"): continue
+                  seen.add(r["id"])
+                  img = r["urls"]["raw"] + "&w=900&h=1200&fit=crop&crop=faces&q=75&fm=jpg"
+                  name = f"retratos/{len(out):02d}.jpg"
+                  try:
+                      open(name, "wb").write(urllib.request.urlopen(urllib.request.Request(img, headers=UA)).read())
+                  except Exception as e:
+                      print("dl fail", r["id"], e); continue
+                  out.append({"file": name, "id": r["id"], "slug": r.get("slug"), "alt": r.get("alt_description"),
+                              "author": r["user"]["name"], "authorUrl": r["user"]["links"]["html"],
+                              "page": r["links"]["html"], "raw": r["urls"]["raw"], "query": q})
+                  time.sleep(0.5)
+          json.dump(out, open("retratos/retratos.json", "w"), ensure_ascii=False, indent=2)
+          print(len(out))
+          PY
+      - name: Subir a la rama
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898+github-actions[bot]@users.noreply.github.com"
+          git add retratos
+          git commit -m "Retratos candidatos (Unsplash)"
+          git push
