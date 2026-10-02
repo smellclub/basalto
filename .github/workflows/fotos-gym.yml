@@ -15,30 +15,38 @@ jobs:
       - name: Buscar y bajar miniaturas
         run: |
           python3 - <<'PY'
-          import json, os, re, urllib.request
-          UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36"
+          # Openverse (buscador de imágenes con licencia libre). Pedimos solo licencias que permiten uso comercial
+          # y modificación, y guardamos autor/licencia para dar crédito.
+          import json, os, urllib.request, urllib.parse
+          UA = "voltio-demo/1.0 (github.com/smellclub)"
           def get(url):
-              return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "en"}), timeout=30).read()
-          slugs = ["gym", "gym-interior", "weightlifting", "boxing-gym", "crossfit", "personal-trainer",
-                   "functional-training", "kettlebell", "deadlift", "battle-ropes", "spin-class", "gym-woman", "gym-man"]
+              return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=40).read()
+          queries = [("gym", "stocksnap"), ("fitness", "stocksnap"), ("workout", "stocksnap"), ("weights", "stocksnap"),
+                     ("boxing", "stocksnap"), ("running", "stocksnap"), ("yoga", "stocksnap"),
+                     ("gym", None), ("weightlifting", None), ("boxing gym", None), ("crossfit", None),
+                     ("kettlebell", None), ("spinning class", None), ("personal trainer", None), ("gym interior", None)]
           os.makedirs("gym", exist_ok=True)
           seen, out = set(), []
-          for s in slugs:
+          for q, src in queries:
+              params = {"q": q, "license_type": "commercial,modification", "page_size": 20, "mature": "false"}
+              if src: params["source"] = src
               try:
-                  html = get(f"https://unsplash.com/s/photos/{s}?license=free").decode("utf-8", "ignore")
+                  data = json.loads(get("https://api.openverse.org/v1/images/?" + urllib.parse.urlencode(params)))
               except Exception as e:
-                  print("page fail", s, e); continue
-              ids = re.findall(r"https://images\.unsplash\.com/photo-([0-9]+-[0-9a-f]+)", html)
-              print(s, len(set(ids)))
-              for pid in dict.fromkeys(ids):
-                  if pid in seen or len(out) >= 160: continue
-                  seen.add(pid)
+                  print("search fail", q, src, e); continue
+              print(q, src, data.get("result_count"))
+              for r in data.get("results", []):
+                  if r["id"] in seen or (r.get("width") or 0) < 1600: continue
+                  seen.add(r["id"])
                   name = f"gym/{len(out):03d}.jpg"
                   try:
-                      open(name, "wb").write(get(f"https://images.unsplash.com/photo-{pid}?w=360&q=55&fm=jpg"))
+                      open(name, "wb").write(get(r.get("thumbnail") or r["url"]))
                   except Exception as e:
-                      print("dl fail", pid, e); continue
-                  out.append({"file": name, "q": s, "id": pid})
+                      print("dl fail", r["id"], e); continue
+                  out.append({"file": name, "q": q, "src": r.get("source"), "id": r["id"], "url": r["url"],
+                              "w": r.get("width"), "h": r.get("height"), "title": r.get("title"),
+                              "creator": r.get("creator"), "license": r.get("license"),
+                              "license_version": r.get("license_version"), "landing": r.get("foreign_landing_url")})
           json.dump(out, open("gym/gym.json", "w"), indent=1)
           print(len(out))
           PY
