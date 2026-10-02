@@ -18,7 +18,7 @@ jobs:
           python3 - <<'PY'
           import json, subprocess, urllib.request
           for p in json.load(open("gym/pick.json")):
-              raw = f"gym/final/{p['name']}.orig"
+              raw = f"gym/final/{p['name']}.jpg"
               # El buscador da la versión de 960 px: probamos versiones más grandes del mismo CDN.
               for size in ["2880w", "1920w", "1280w", "960w"]:
                   try:
@@ -27,15 +27,7 @@ jobs:
                       print(p["name"], size); break
                   except Exception as e:
                       print(p["name"], size, "fail", e)
-              out = f"gym/final/{p['name']}.jpg"
-              if p["name"].startswith("coach-"):
-                  args = ["-resize", "900x1200^", "-gravity", "north", "-extent", "900x1200"]
-              else:
-                  args = ["-resize", "2000x2000>"]
-              subprocess.run(["convert", raw, "-auto-orient", *args, "-strip", "-quality", "78", "-interlace", "Plane", out], check=True)
-              print(out)
           PY
-          rm gym/final/*.orig
       - name: Subir a la rama
         run: |
           git config user.name "github-actions[bot]"
