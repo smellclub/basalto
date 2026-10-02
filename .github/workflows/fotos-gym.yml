@@ -12,22 +12,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bajar las elegidas en tamaño web
+      - name: Probar URLs grandes
         run: |
-          mkdir -p gym/final
           python3 - <<'PY'
-          import json, subprocess, urllib.request
-          for p in json.load(open("gym/pick.json")):
-              raw = f"gym/final/{p['name']}.jpg"
-              # El buscador da la versión de 960 px: probamos versiones más grandes del mismo CDN.
-              for size in ["2880w", "1920w", "1280w", "960w"]:
-                  try:
-                      url = p["url"].replace("/960w/", f"/{size}/")
-                      open(raw, "wb").write(urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "voltio-demo/1.0"}), timeout=60).read())
-                      print(p["name"], size); break
-                  except Exception as e:
-                      print(p["name"], size, "fail", e)
+          import re, urllib.request
+          UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36"}
+          pid = "XBU0JECP7E"
+          cands = [f"https://cdn.stocksnap.io/img-thumbs/{s}/{pid}.jpg" for s in ["2880w", "1920w", "1280w", "1024w", "960w", "2880h", "1280h"]]
+          cands += [f"https://stocksnap.io/photo/download/{pid}", f"https://stocksnap.io/photo/{pid}"]
+          for u in cands:
+              try:
+                  r = urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=30)
+                  body = r.read()
+                  print("OK", u, r.status, r.headers.get("content-type"), len(body))
+                  if "html" in (r.headers.get("content-type") or ""):
+                      txt = body.decode("utf-8", "ignore")
+                      for m in sorted(set(re.findall(r"https?://[^\"' )]+" + pid + r"[^\"' )]*", txt)))[:30]: print("  ", m)
+                      for m in sorted(set(re.findall(r"[^\"' ]*download[^\"' ]*", txt)))[:20]: print("  dl", m)
+              except Exception as e:
+                  print("FAIL", u, e)
           PY
+          exit 1
       - name: Subir a la rama
         run: |
           git config user.name "github-actions[bot]"
