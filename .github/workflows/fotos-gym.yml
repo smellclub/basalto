@@ -12,31 +12,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Probar URLs grandes
+      - name: Bajar originales (POST de descarga de StockSnap)
         run: |
+          mkdir -p gym/full
           python3 - <<'PY'
-          import re, urllib.request
-          UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36"}
-          pid = "XBU0JECP7E"
-          cands = [f"https://cdn.stocksnap.io/img-thumbs/{s}/{pid}.jpg" for s in ["2880w", "1920w", "1280w", "1024w", "960w", "2880h", "1280h"]]
-          cands += [f"https://stocksnap.io/photo/download/{pid}", f"https://stocksnap.io/photo/{pid}"]
-          for u in cands:
+          import json, re, http.cookiejar, urllib.request, urllib.parse
+          UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36"
+          cj = http.cookiejar.CookieJar()
+          op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+          op.addheaders = [("User-Agent", UA)]
+          for p in json.load(open("gym/pick.json")):
+              pid = p["url"].rsplit("/", 1)[1].split(".")[0]
               try:
-                  r = urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=30)
+                  page = op.open(p["landing"], timeout=30).read().decode("utf-8", "ignore")
+                  token = re.search(r'name="_token" value="([^"]+)"', page) or re.search(r'csrf-token" content="([^"]+)"', page)
+                  data = {"photo_id": pid}
+                  if token: data["_token"] = token.group(1)
+                  req = urllib.request.Request("https://stocksnap.io/photo/download", data=urllib.parse.urlencode(data).encode(),
+                                               headers={"Referer": p["landing"], "X-Requested-With": "XMLHttpRequest"})
+                  r = op.open(req, timeout=60)
                   body = r.read()
-                  print("OK", u, r.status, r.headers.get("content-type"), len(body))
-                  if "html" in (r.headers.get("content-type") or ""):
-                      txt = body.decode("utf-8", "ignore")
-                      for m in sorted(set(re.findall(r"https?://[^\"' )]+" + pid + r"[^\"' )]*", txt)))[:30]: print("  ", m)
-                      for m in sorted(set(re.findall(r"[^\"' ]*download[^\"' ]*", txt)))[:20]: print("  dl", m)
+                  ct = r.headers.get("content-type", "")
+                  print(p["name"], r.status, ct, len(body), r.geturl()[:120])
+                  if "image" in ct:
+                      open(f"gym/full/{p['name']}.jpg", "wb").write(body)
+                  else:
+                      print("  ", body[:300])
               except Exception as e:
-                  print("FAIL", u, e)
+                  print(p["name"], "fail", e)
           PY
-          exit 1
       - name: Subir a la rama
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898+github-actions[bot]@users.noreply.github.com"
-          git add gym/final
-          git commit -m "Fotos elegidas en tamaño web"
+          git add gym/full || true
+          git commit -m "Fotos originales" || true
           git push
