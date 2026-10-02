@@ -15,32 +15,30 @@ jobs:
       - name: Buscar y bajar miniaturas
         run: |
           python3 - <<'PY'
-          import json, os, urllib.request, urllib.parse
-          UA = {"User-Agent": "Mozilla/5.0 (gym-demo)", "Accept": "application/json"}
-          queries = ["gym", "gym interior", "weightlifting", "boxing gym", "crossfit", "personal trainer",
-                     "functional training", "spinning class", "kettlebell", "deadlift", "gym athlete", "battle ropes"]
+          import json, os, re, urllib.request
+          UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36"
+          def get(url):
+              return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "en"}), timeout=30).read()
+          slugs = ["gym", "gym-interior", "weightlifting", "boxing-gym", "crossfit", "personal-trainer",
+                   "functional-training", "kettlebell", "deadlift", "battle-ropes", "spin-class", "gym-woman", "gym-man"]
           os.makedirs("gym", exist_ok=True)
           seen, out = set(), []
-          for q in queries:
-              url = "https://unsplash.com/napi/search/photos?" + urllib.parse.urlencode({"query": q, "per_page": 30})
+          for s in slugs:
               try:
-                  data = json.load(urllib.request.urlopen(urllib.request.Request(url, headers=UA)))
+                  html = get(f"https://unsplash.com/s/photos/{s}?license=free").decode("utf-8", "ignore")
               except Exception as e:
-                  print("search fail", q, e); continue
-              for p in data.get("results", []):
-                  if p["id"] in seen or p.get("premium") or p.get("plus"): continue
-                  raw = p["urls"]["raw"]
-                  if "plus.unsplash.com" in raw: continue
-                  seen.add(p["id"])
+                  print("page fail", s, e); continue
+              ids = re.findall(r"https://images\.unsplash\.com/photo-([0-9]+-[0-9a-f]+)", html)
+              print(s, len(set(ids)))
+              for pid in dict.fromkeys(ids):
+                  if pid in seen or len(out) >= 160: continue
+                  seen.add(pid)
                   name = f"gym/{len(out):03d}.jpg"
-                  thumb = raw + ("&" if "?" in raw else "?") + "w=360&q=55&fm=jpg"
                   try:
-                      open(name, "wb").write(urllib.request.urlopen(urllib.request.Request(thumb, headers={"User-Agent": UA["User-Agent"]})).read())
+                      open(name, "wb").write(get(f"https://images.unsplash.com/photo-{pid}?w=360&q=55&fm=jpg"))
                   except Exception as e:
-                      print("dl fail", p["id"], e); continue
-                  out.append({"file": name, "q": q, "id": p["id"], "raw": raw, "w": p["width"], "h": p["height"],
-                              "alt": p.get("alt_description"), "author": p["user"]["name"],
-                              "page": p["links"]["html"]})
+                      print("dl fail", pid, e); continue
+                  out.append({"file": name, "q": s, "id": pid})
           json.dump(out, open("gym/gym.json", "w"), indent=1)
           print(len(out))
           PY
