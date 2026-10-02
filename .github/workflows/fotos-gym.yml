@@ -12,48 +12,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Buscar y bajar miniaturas
+      - name: Bajar las elegidas en tamaño web
         run: |
+          mkdir -p gym/final
           python3 - <<'PY'
-          # Openverse (buscador de imágenes con licencia libre). Pedimos solo licencias que permiten uso comercial
-          # y modificación, y guardamos autor/licencia para dar crédito.
-          import json, os, urllib.request, urllib.parse
-          UA = "voltio-demo/1.0 (github.com/smellclub)"
-          def get(url):
-              return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=40).read()
-          queries = [("gym", "stocksnap"), ("fitness", "stocksnap"), ("workout", "stocksnap"), ("weights", "stocksnap"),
-                     ("boxing", "stocksnap"), ("running", "stocksnap"), ("yoga", "stocksnap"),
-                     ("gym", None), ("weightlifting", None), ("boxing gym", None), ("crossfit", None),
-                     ("kettlebell", None), ("spinning class", None), ("personal trainer", None), ("gym interior", None)]
-          os.makedirs("gym", exist_ok=True)
-          seen, out = set(), []
-          for q, src in queries:
-              params = {"q": q, "license_type": "commercial,modification", "page_size": 20, "mature": "false"}
-              if src: params["source"] = src
-              try:
-                  data = json.loads(get("https://api.openverse.org/v1/images/?" + urllib.parse.urlencode(params)))
-              except Exception as e:
-                  print("search fail", q, src, e); continue
-              print(q, src, data.get("result_count"))
-              for r in data.get("results", []):
-                  if r["id"] in seen or (r.get("width") or 0) < 1600: continue
-                  seen.add(r["id"])
-                  name = f"gym/{len(out):03d}.jpg"
-                  try:
-                      open(name, "wb").write(get(r.get("thumbnail") or r["url"]))
-                  except Exception as e:
-                      print("dl fail", r["id"], e); continue
-                  out.append({"file": name, "q": q, "src": r.get("source"), "id": r["id"], "url": r["url"],
-                              "w": r.get("width"), "h": r.get("height"), "title": r.get("title"),
-                              "creator": r.get("creator"), "license": r.get("license"),
-                              "license_version": r.get("license_version"), "landing": r.get("foreign_landing_url")})
-          json.dump(out, open("gym/gym.json", "w"), indent=1)
-          print(len(out))
+          import json, subprocess, urllib.request
+          for p in json.load(open("gym/pick.json")):
+              raw = f"gym/final/{p['name']}.orig"
+              open(raw, "wb").write(urllib.request.urlopen(urllib.request.Request(p["url"], headers={"User-Agent": "voltio-demo/1.0"}), timeout=60).read())
+              out = f"gym/final/{p['name']}.jpg"
+              if p["name"].startswith("coach-"):
+                  args = ["-resize", "900x1200^", "-gravity", "north", "-extent", "900x1200"]
+              else:
+                  args = ["-resize", "2000x2000>"]
+              subprocess.run(["convert", raw, "-auto-orient", *args, "-strip", "-quality", "78", "-interlace", "Plane", out], check=True)
+              print(out)
           PY
+          rm gym/final/*.orig
       - name: Subir a la rama
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898+github-actions[bot]@users.noreply.github.com"
-          git add gym
-          git commit -m "Fotos de gimnasio candidatas (Unsplash)"
+          git add gym/final
+          git commit -m "Fotos elegidas en tamaño web"
           git push
