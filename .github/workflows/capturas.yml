@@ -18,7 +18,7 @@ jobs:
           mkdir -p /tmp/pw && cd /tmp/pw && npm init -y >/dev/null && npm i playwright@1 >/dev/null && npx playwright install --with-deps chromium >/dev/null
           cat > shot.mjs <<'JS'
           import { chromium } from "playwright";
-          const sites = { "black-line": "https://black-line-sandy.vercel.app", basalto: "https://basalto-smellclub.vercel.app", "smell-club": "https://smell-club-claude.vercel.app" };
+          const sites = { "smell-club": "https://smellclub-uy.vercel.app" };
           const out = process.env.GITHUB_WORKSPACE + "/capturas";
           const b = await chromium.launch();
           for (const [name, url] of Object.entries(sites)) {
@@ -33,6 +33,8 @@ jobs:
                   for (let y = 0; y < h; y += 400) { await p.evaluate((y) => scrollTo(0, y), y); await p.waitForTimeout(150); }
                   await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(1500);
                   await p.screenshot({ path: `${out}/${name}-full.jpg`, type: "jpeg", quality: 70, fullPage: true });
+                  const fs = await import("node:fs");
+                  fs.writeFileSync(`${out}/${name}-texto.txt`, await p.evaluate(() => document.title + "\n" + document.body.innerText));
                 }
                 console.log("ok", name, tag);
               } catch (e) { console.log("fail", name, tag, e.message); }
@@ -47,5 +49,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898+github-actions[bot]@users.noreply.github.com"
           git add capturas
-          git commit -m "Capturas de las demos"
+          git commit -m "Capturas nuevas de Smell Club"
           git push
